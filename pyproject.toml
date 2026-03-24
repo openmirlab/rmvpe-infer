@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rmvpe-infer"
+version = "0.1.0"
+description = "Inference-only RMVPE vocal pitch estimation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+    { name = "OpenMIRLab", email = "bernie40916@gmail.com" }
+]
+keywords = ["audio", "pitch", "f0", "vocal", "rmvpe", "pytorch", "inference"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.0",
+    "torchaudio>=2.0",
+    "numpy>=1.23",
+    "librosa>=0.10",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/openmirlab/rmvpe-infer"
+Repository = "https://github.com/openmirlab/rmvpe-infer"
+
+[project.scripts]
+rmvpe-infer = "rmvpe_infer.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rmvpe_infer"]
+
+[tool.uv]
+dev-dependencies = [
+    "build>=1.3.0",
+    "pytest>=7.0",
+    "ruff>=0.5",
+    "twine>=6.2.0",
+]
