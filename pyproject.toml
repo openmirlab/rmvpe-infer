@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rmvpe-infer"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Inference-only RMVPE vocal pitch estimation"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -45,6 +45,9 @@ Repository = "https://github.com/openmirlab/rmvpe-infer"
 [project.scripts]
 rmvpe-infer = "rmvpe_infer.cli:main"
 
+[tool.hatch.version]
+path = "src/rmvpe_infer/__about__.py"
+
 [tool.hatch.build.targets.wheel]
 packages = ["src/rmvpe_infer"]
 
@@ -55,3 +58,14 @@ dev-dependencies = [
     "ruff>=0.5",
     "twine>=6.2.0",
 ]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "network: hits real network endpoints (deselected by default, run with -m network)",
+    "weights: requires the real RMVPE checkpoint (auto-downloaded or via RMVPE_INFER_WEIGHTS); deselected by default, run with -m weights",
+]
+addopts = "-m \"not network and not weights\""

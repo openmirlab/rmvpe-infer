@@ -1,3 +1,14 @@
+"""Log-mel spectrogram extraction matching the checkpoint's training features.
+
+`MelSpectrogram` wraps `torch.stft` + librosa's HTK mel filterbank (built
+once at init from constants.py's N_MELS/SAMPLE_RATE/MEL_FMIN/MEL_FMAX and
+cached as a registered buffer) into the exact feature the RMVPE checkpoint
+expects as input. The `keyshift`/`speed` args support upstream's pitch-shift
+augmentation path; inference.py always calls with the defaults.
+
+Reads: nothing else in this package (constants come in as constructor args).
+"""
+
 import torch
 import numpy as np
 import torch.nn.functional as F

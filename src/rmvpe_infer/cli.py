@@ -1,4 +1,11 @@
-"""CLI for RMVPE inference."""
+"""CLI entry point (`rmvpe-infer`): load an audio file, run RMVPE, write F0 to CSV.
+
+Wraps `download_model()` + `RMVPE.infer_from_audio()` behind an argparse
+interface — auto-downloads the checkpoint on first run unless `--model` is
+given, then writes one (timestamp_s, f0_hz) row per hop to the output CSV.
+
+Reads: download.py (download_model), inference.py (RMVPE).
+"""
 
 import argparse
 import csv

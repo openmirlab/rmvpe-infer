@@ -1,3 +1,15 @@
+"""RMVPE: the public inference class — load a checkpoint, run pitch estimation.
+
+Owns the full pipeline: checkpoint loading (E2E0, eval mode, device
+placement), resampling arbitrary input sample rates to the 16kHz the model
+was trained on, mel spectrogram extraction, 32-frame-aligned padding for the
+U-Net's downsampling, and decoding the model's per-frame class distribution
+to Hz (local-average or Viterbi). This is the one class most callers need.
+
+Reads: model.py (E2E0/E2E), spec.py (MelSpectrogram), utils.py (F0 decoders),
+constants.py (SAMPLE_RATE et al.).
+"""
+
 import numpy as np
 import torch
 import torch.nn.functional as F

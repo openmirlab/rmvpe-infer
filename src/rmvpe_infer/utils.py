@@ -1,4 +1,15 @@
-"""F0 decoding utilities for RMVPE inference."""
+"""F0 decoding: convert the model's per-frame class distribution to Hz.
+
+Two decoders share the same cents<->Hz math (`to_local_average_f0`/
+`to_local_average_cents`, a weighted average over the 9 bins around the
+argmax): `to_local_average_f0` is the fast default `RMVPE.decode` path;
+`to_viterbi_f0`/`to_viterbi_cents` route the argmax through a librosa
+Viterbi path first for a smoother, less jittery track. `thred` gates
+unvoiced frames to 0 Hz when the model's peak confidence is too low.
+
+Reads: constants.py (N_CLASS, CONST — the 20-cent bin width and the base
+cents offset the model was trained against).
+"""
 
 import numpy as np
 import librosa

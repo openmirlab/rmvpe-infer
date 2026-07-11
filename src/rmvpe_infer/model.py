@@ -1,3 +1,14 @@
+"""Top-level model heads: DeepUnet(0) + 3-channel conv + BiGRU + class-sigmoid.
+
+`E2E0` is the architecture the shipped checkpoint (`inference.py`'s
+`RMVPE.__init__`) actually instantiates and loads weights into; `E2E` is
+kept for parity with upstream's timbre-filtered variant but has no
+matching published checkpoint in this package. Both map a mel spectrogram
+to per-frame N_CLASS (360-bin, 20-cent) pitch-salience logits.
+
+Reads: deepunet.py (DeepUnet/DeepUnet0), seq.py (BiGRU), constants.py.
+"""
+
 import torch
 from torch import nn
 from .deepunet import DeepUnet, DeepUnet0

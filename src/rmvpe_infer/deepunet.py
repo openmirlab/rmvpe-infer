@@ -1,3 +1,14 @@
+"""The Deep U-Net encoder/decoder backbone (residual conv blocks + timbre filter).
+
+Vendored near-verbatim from yxlllc/RMVPE's model architecture so trained
+weights load unmodified: `DeepUnet0` (no timbre filter on skip connections)
+is what the shipped checkpoint (E2E0) uses; `DeepUnet` (with `TimbreFilter`)
+matches the E2E variant, kept for architecture parity even though only E2E0
+is wired up in inference.py.
+
+Reads: constants.py (N_MELS).
+"""
+
 import torch
 import torch.nn as nn
 from .constants import N_MELS

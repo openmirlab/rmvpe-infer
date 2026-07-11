@@ -61,6 +61,24 @@ f0 = rmvpe.infer_from_audio(audio, sample_rate=sr)
 # f0: numpy array of F0 values in Hz (0 = unvoiced)
 ```
 
+**Sanity-check it on a known pitch** (the same tones the test suite verifies
+against in `tests/test_pitch_physics.py`):
+
+```python
+import numpy as np
+from rmvpe_infer import RMVPE, download_model
+
+rmvpe = RMVPE(str(download_model()))
+
+sr = 16000
+t = np.arange(sr) / sr  # 1 second
+audio = (0.5 * np.sin(2 * np.pi * 440.0 * t)).astype(np.float32)  # A4, 440Hz
+
+f0 = rmvpe.infer_from_audio(audio, sample_rate=sr)
+voiced = f0[f0 > 0]
+print(f"median detected pitch: {np.median(voiced):.1f} Hz (expected ~440 Hz)")
+```
+
 ---
 
 ## Parameters
@@ -76,13 +94,22 @@ f0 = rmvpe.infer_from_audio(audio, sample_rate=sr)
 
 ## Pretrained Model
 
-The pretrained checkpoint is automatically downloaded from the [official RMVPE release](https://github.com/yxlllc/RMVPE/releases/tag/230917) (~340 MB).
+The pretrained checkpoint is automatically downloaded from the [official RMVPE release](https://github.com/yxlllc/RMVPE/releases/tag/230917) (~350 MB extracted `.pt`, from `rmvpe.zip`).
 
 - **Architecture**: Deep U-Net encoder-decoder + BiGRU
 - **Training data**: MIR-1K, PTDB, M4Singer
 - **Frame rate**: 10ms (100 fps at 16kHz)
 - **Frequency range**: ~30 Hz to 8000 Hz
 - **Cache location**: `~/.cache/rmvpe/`
+- **Provenance**: sha256 of the extracted checkpoint is
+  `19dc1809cf4cdb0a18db93441816bc327e14e5644b72eeaae5220560c6736fe2`,
+  verified automatically on every download and cache hit
+  (`rmvpe_infer.download.verify_checksum`) — a corrupted or tampered file
+  raises `ChecksumMismatchError` instead of loading silently.
+- **Hosting note**: this URL is yxlllc's own third-party GitHub release, not
+  currently an openmirlab-controlled mirror. Set `RMVPE_INFER_WEIGHTS=/path/to/checkpoint.pt`
+  to point at your own copy and skip the download entirely (also useful for
+  offline/air-gapped environments).
 
 ---
 
@@ -94,11 +121,28 @@ git clone https://github.com/openmirlab/rmvpe-infer.git
 cd rmvpe-infer
 
 # Install with UV
-uv sync
+uv sync --extra dev
 
 # Install with pip
 pip install -e ".[dev]"
 ```
+
+---
+
+## Testing
+
+```bash
+# CI-safe unit tests — no checkpoint, no network, no GPU (31 tests)
+uv run pytest tests/
+
+# Weight-dependent tests — needs the real checkpoint (auto-downloads if
+# not cached, or set RMVPE_INFER_WEIGHTS to point at your own copy):
+# pitch-accuracy physics test (220/440/880Hz + vibrato sweep vs ground
+# truth), a CPU-determinism check, and a golden regression fixture.
+uv run pytest tests/ -m weights
+```
+
+See [CLAUDE.md](CLAUDE.md) for the full test-layer breakdown.
 
 ---
 
