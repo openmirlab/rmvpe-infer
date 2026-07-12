@@ -10,6 +10,12 @@ the [openmirlab org constitution](https://github.com/openmirlab/openmirlab-skill
 estimation. Public surface: `RMVPE` (`inference.py`) and `download_model`
 (`download.py`), both re-exported from `rmvpe_infer/__init__.py`.
 
+**Scope / status:** shipped and stable. There is no training path, no other
+pitch models, and no downstream consumer logic (source separation, voice
+conversion) in this repo by design — see README's Scope section for the
+"out of scope, forever" list. The one open item is weight hosting (see
+below): functionally done, org-mirror migration still pending.
+
 ```
 src/rmvpe_infer/
   __about__.py      -- single-sourced __version__ (read by pyproject.toml)
