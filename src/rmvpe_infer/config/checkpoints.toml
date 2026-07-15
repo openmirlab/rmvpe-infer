@@ -1,0 +1,7 @@
+[checkpoints.rmvpe]
+url = "https://github.com/yxlllc/RMVPE/releases/download/230917/rmvpe.zip"
+sha256 = "19dc1809cf4cdb0a18db93441816bc327e14e5644b72eeaae5220560c6736fe2"
+license = "Unknown checkpoint license; verify upstream terms before redistribution"
+provenance = "yxlllc/RMVPE release 230917"
+source_revision = "230917"
+updated_at = "2026-07-12"

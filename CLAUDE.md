@@ -7,8 +7,9 @@ the [openmirlab org constitution](https://github.com/openmirlab/openmirlab-skill
 
 `rmvpe_infer` is an inference-only, single-model wrapper around
 [yxlllc/RMVPE](https://github.com/yxlllc/RMVPE) for vocal pitch (F0)
-estimation. Public surface: `RMVPE` (`inference.py`) and `download_model`
-(`download.py`), both re-exported from `rmvpe_infer/__init__.py`.
+estimation. Public surface: `RMVPE` (`inference.py`), `RMVPESession`
+(`session.py`), and `download_model` (`download.py`), all re-exported from
+`rmvpe_infer/__init__.py`.
 
 **Scope / status:** shipped and stable. There is no training path, no other
 pitch models, and no downstream consumer logic (source separation, voice
@@ -28,6 +29,9 @@ src/rmvpe_infer/
   utils.py           -- cents<->Hz decode (local-average, Viterbi)
   constants.py        -- fixed model/audio constants (must match training)
   download.py         -- checkpoint download, sha256 verification, cache
+  config.py           -- package-owned checkpoint metadata and overrides
+  config/checkpoints.toml -- release-pinned URL, checksum, provenance
+  session.py          -- explicit load/infer/release/close lifecycle
   cli.py              -- `rmvpe-infer` command
 tests/                -- pytest, see "Testing" below
 tools/capture_baseline.py -- regenerates the golden regression fixture

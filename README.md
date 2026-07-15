@@ -23,8 +23,9 @@ means the "just run inference" path is buried under code most callers don't
 need.
 
 RMVPE-Infer reprovides just that inference path: a small, pip-installable,
-inference-only package with a single public class (`RMVPE`), an
-auto-downloading checkpoint fetcher with sha256 verification, and a CLI —
+inference-only package with a lazy-compatible one-shot class (`RMVPE`) and an
+explicit `RMVPESession` lifecycle facade, an auto-downloading checkpoint
+fetcher with sha256 verification, and a CLI —
 nothing else from the original repo.
 
 ---
@@ -77,8 +78,8 @@ cite whichever version matches your bibliography style.
 ## Scope
 
 **In scope:** a single-model, inference-only wrapper around RMVPE — load a
-checkpoint, run F0 estimation on an audio buffer, get back per-frame pitch
-in Hz. That's the entire public surface (`RMVPE`, `download_model`).
+  checkpoint, run F0 estimation on an audio buffer, get back per-frame pitch
+  in Hz. The public surface is `RMVPE`, `RMVPESession`, and `download_model`.
 
 **Out of scope, forever:**
 - Training or fine-tuning RMVPE (this package never loads a dataset or computes a loss)

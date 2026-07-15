@@ -18,5 +18,6 @@ Reads: __about__.py, inference.py, download.py.
 from .__about__ import __version__
 from .inference import RMVPE
 from .download import download_model
+from .session import RMVPESession
 
-__all__ = ["RMVPE", "download_model", "__version__"]
+__all__ = ["RMVPE", "RMVPESession", "download_model", "__version__"]

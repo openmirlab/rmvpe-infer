@@ -2,6 +2,15 @@
 
 All notable changes to rmvpe-infer will be documented in this file.
 
+## Unreleased
+
+### Added
+- `RMVPESession` explicit lifecycle facade with ready-only inference,
+  `load`, `release`, `close`, status, cache metadata, and context-manager
+  support while preserving the existing `RMVPE` API.
+- Package-owned `config/checkpoints.toml` with checksum/provenance metadata and
+  generic URL/checksum/config overrides.
+
 ## [0.1.0] - 2026-07-12
 
 ### Added

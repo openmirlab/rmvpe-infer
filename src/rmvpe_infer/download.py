@@ -53,7 +53,8 @@ def verify_checksum(path, expected: str = MODEL_SHA256) -> None:
         )
 
 
-def download_model(cache_dir=None, force: bool = False, verify: bool = True) -> Path:
+def download_model(cache_dir=None, force: bool = False, verify: bool = True,
+                   url: str = MODEL_URL, expected_sha256: str = MODEL_SHA256) -> Path:
     """Return the path to the pretrained RMVPE .pt checkpoint, downloading it if needed.
 
     Honors `RMVPE_INFER_WEIGHTS` (path to an existing checkpoint) before
@@ -79,12 +80,12 @@ def download_model(cache_dir=None, force: bool = False, verify: bool = True) -> 
 
     if model_path.exists() and not force:
         if verify:
-            verify_checksum(model_path)
+            verify_checksum(model_path, expected=expected_sha256)
         return model_path
 
     zip_path = cache_dir / "rmvpe.zip"
     print(f"Downloading RMVPE model to {cache_dir}...")
-    urlretrieve(MODEL_URL, str(zip_path))
+    urlretrieve(url, str(zip_path))
 
     print("Extracting...")
     with zipfile.ZipFile(str(zip_path), "r") as zf:
@@ -98,7 +99,7 @@ def download_model(cache_dir=None, force: bool = False, verify: bool = True) -> 
             break
 
     if verify:
-        verify_checksum(model_path)
+        verify_checksum(model_path, expected=expected_sha256)
 
     print(f"Model ready: {model_path}")
     return model_path
