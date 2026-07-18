@@ -20,7 +20,7 @@ def main():
     parser.add_argument("--hop-length", type=int, default=160, help="Hop length in samples (default: 160 = 10ms)")
     parser.add_argument("--threshold", type=float, default=0.03, help="Voicing threshold")
     parser.add_argument("--viterbi", action="store_true", help="Use Viterbi decoding")
-    parser.add_argument("--device", default=None, help="Device (cuda/cpu, auto if omitted)")
+    parser.add_argument("--device", default=None, help="Device (cuda/cpu/auto, auto if omitted)")
     args = parser.parse_args()
 
     import librosa
@@ -28,10 +28,10 @@ def main():
     from .download import download_model
 
     model_path = args.model or str(download_model())
-    rmvpe = RMVPE(model_path, hop_length=args.hop_length)
+    rmvpe = RMVPE(model_path, hop_length=args.hop_length, device=args.device)
 
     audio, sr = librosa.load(args.input, sr=None, mono=True)
-    f0 = rmvpe.infer_from_audio(audio, sample_rate=sr, device=args.device,
+    f0 = rmvpe.infer_from_audio(audio, sample_rate=sr,
                                  thred=args.threshold, use_viterbi=args.viterbi)
 
     hop_sec = args.hop_length / 16000

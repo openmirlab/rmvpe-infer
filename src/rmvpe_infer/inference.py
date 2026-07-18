@@ -26,11 +26,11 @@ class RMVPE:
     Args:
         model_path: Path to the .pt checkpoint file.
         hop_length: Hop size in samples at 16kHz (default: 160 = 10ms).
-        device: Device to run on ('cuda', 'cpu', or None for auto-detect).
+        device: Device to run on ('cuda', 'cpu', or None/'auto' for auto-detect).
     """
 
     def __init__(self, model_path, hop_length=160, device=None):
-        if device is None:
+        if device is None or device == "auto":
             device = "cuda" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(device)
 
