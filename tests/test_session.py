@@ -17,7 +17,14 @@ class _FakeRuntime:
 
 
 def test_session_requires_load(monkeypatch, tmp_path):
-    monkeypatch.setattr(session_module, "RMVPE", _FakeRuntime)
+    constructed = []
+
+    def build(*args, **kwargs):
+        runtime = _FakeRuntime(*args, **kwargs)
+        constructed.append(runtime)
+        return runtime
+
+    monkeypatch.setattr(session_module, "RMVPE", build)
     path = tmp_path / "weights.pt"
     path.write_bytes(b"weights")
     session = RMVPESession(model_path=path)
@@ -25,15 +32,23 @@ def test_session_requires_load(monkeypatch, tmp_path):
     with pytest.raises(RuntimeError):
         session.infer([1])
     session.load()
+    session.load()
     assert session.status == "ready"
+    assert len(constructed) == 1
     assert session.infer([1]) == [1]
-    session.release()
+    assert session.release() is session
     assert session.status == "released"
     with pytest.raises(RuntimeError):
         session.infer([1])
-    session.close()
+    session.load()
+    assert len(constructed) == 2
+    assert session.close() is session
     assert session.status == "closed"
-    session.close()
+    assert session.close() is session
+    with pytest.raises(RuntimeError, match="closed"):
+        session.load()
+    with pytest.raises(RuntimeError, match="ready"):
+        session.infer([1])
 
 
 def test_session_failed_load_is_visible(monkeypatch, tmp_path):
@@ -56,3 +71,56 @@ def test_context_manager_releases(monkeypatch, tmp_path):
     with RMVPESession(model_path=path) as session:
         assert session.status == "ready"
     assert session.status == "closed"
+
+
+def test_cache_info_is_read_only_and_uses_default_or_custom_resolver(monkeypatch, tmp_path):
+    import rmvpe_infer.download as download
+
+    cache = tmp_path / "cache"
+    monkeypatch.delenv(download.ENV_VAR, raising=False)
+    monkeypatch.setattr(download, "urlretrieve", lambda *args: pytest.fail("download attempted"))
+    default = RMVPESession(cache_dir=cache)
+    info = default.cache_info()
+    assert info["path"] == str(cache / "model.pt")
+    assert info["exists"] is False
+    assert not cache.exists()
+
+    custom = RMVPESession(
+        cache_dir=cache,
+        checkpoint_overrides={
+            "url": "https://example.invalid/custom.zip",
+            "sha256": "f" * 64,
+            "filename": "custom.pt",
+        },
+    )
+    custom_info = custom.cache_info()
+    assert custom_info["path"] == str(cache / "custom.pt")
+    assert custom_info["url"] == "https://example.invalid/custom.zip"
+    assert custom_info["sha256"] == "f" * 64
+
+
+def test_load_uses_the_same_custom_checkpoint_metadata(monkeypatch, tmp_path):
+    captured = {}
+    path = tmp_path / "custom.pt"
+    path.write_bytes(b"weights")
+    monkeypatch.setattr(session_module, "RMVPE", _FakeRuntime)
+    monkeypatch.setattr(
+        session_module,
+        "download_model",
+        lambda **kwargs: captured.update(kwargs) or path,
+    )
+    session = RMVPESession(
+        cache_dir=tmp_path / "cache",
+        checkpoint_overrides={
+            "url": "https://example.invalid/custom.zip",
+            "sha256": "a" * 64,
+            "filename": "custom.pt",
+        },
+    )
+    session.load()
+    assert captured == {
+        "cache_dir": tmp_path / "cache",
+        "url": "https://example.invalid/custom.zip",
+        "expected_sha256": "a" * 64,
+        "filename": "custom.pt",
+    }

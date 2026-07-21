@@ -27,12 +27,23 @@ class _StubModel:
         return self
 
     def to(self, device):
+        self.device = device
+        return self
+
+
+class _StubMel:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def to(self, device):
+        self.device = device
         return self
 
 
 @pytest.fixture(autouse=True)
 def _stub_checkpoint_loading(monkeypatch):
     monkeypatch.setattr(inference_module, "E2E0", lambda *args, **kwargs: _StubModel())
+    monkeypatch.setattr(inference_module, "MelSpectrogram", _StubMel)
     monkeypatch.setattr(inference_module.torch, "load", lambda *args, **kwargs: {"model": {}})
 
 
@@ -60,3 +71,27 @@ def test_device_none_and_auto_produce_identical_devices():
 def test_explicit_device_is_still_respected():
     rmvpe = RMVPE("fake.pt", device="cpu")
     assert str(rmvpe.device) == "cpu"
+
+
+def test_explicit_cuda_index_is_validated_and_reaches_model(monkeypatch):
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 2)
+    rmvpe = RMVPE("fake.pt", device="cuda:1")
+    assert rmvpe.device == torch.device("cuda:1")
+    assert rmvpe.model.device == torch.device("cuda:1")
+
+
+def test_unavailable_or_invalid_explicit_devices_raise(monkeypatch):
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
+    with pytest.raises(RuntimeError, match="CUDA"):
+        RMVPE("fake.pt", device="cuda")
+    with pytest.raises(RuntimeError, match="MPS"):
+        RMVPE("fake.pt", device="mps")
+    with pytest.raises(ValueError):
+        RMVPE("fake.pt", device="metal")
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    monkeypatch.setattr(torch.cuda, "device_count", lambda: 1)
+    with pytest.raises(RuntimeError, match="index 1"):
+        RMVPE("fake.pt", device="cuda:1")

@@ -8,7 +8,7 @@ mirror). `RMVPE_INFER_WEIGHTS` lets callers (tests, air-gapped CI, users
 with their own copy) point at an already-present checkpoint and skip the
 network and cache logic entirely.
 
-Reads: nothing else in this package (URL/sha256 are local constants).
+Reads: config.py (package-owned checkpoint metadata).
 """
 
 import hashlib
@@ -17,7 +17,10 @@ import zipfile
 from pathlib import Path
 from urllib.request import urlretrieve
 
-MODEL_URL = "https://github.com/yxlllc/RMVPE/releases/download/230917/rmvpe.zip"
+from .config import checkpoint_entry
+
+_DEFAULT_ENTRY = checkpoint_entry()
+MODEL_URL = _DEFAULT_ENTRY["url"]
 DEFAULT_CACHE_DIR = Path.home() / ".cache" / "rmvpe"
 ENV_VAR = "RMVPE_INFER_WEIGHTS"
 
@@ -26,7 +29,8 @@ ENV_VAR = "RMVPE_INFER_WEIGHTS"
 # Verified on every download AND every cache hit (see download_model) so a
 # truncated/corrupted transfer or a silently-swapped mirror file fails loudly
 # instead of loading a bad model.
-MODEL_SHA256 = "19dc1809cf4cdb0a18db93441816bc327e14e5644b72eeaae5220560c6736fe2"
+MODEL_SHA256 = _DEFAULT_ENTRY["sha256"]
+MODEL_FILENAME = _DEFAULT_ENTRY.get("filename", "model.pt")
 
 
 class ChecksumMismatchError(RuntimeError):
@@ -53,8 +57,22 @@ def verify_checksum(path, expected: str = MODEL_SHA256) -> None:
         )
 
 
+def resolve_model_path(cache_dir=None, *, filename: str = MODEL_FILENAME) -> Path:
+    """Return the loader's path without creating a directory or downloading."""
+    env_path = os.environ.get(ENV_VAR)
+    if env_path:
+        return Path(env_path)
+    root = Path(cache_dir) if cache_dir else DEFAULT_CACHE_DIR
+    preferred = root / filename
+    legacy = root / "rmvpe.pt"
+    if not preferred.exists() and filename == MODEL_FILENAME and legacy.exists():
+        return legacy
+    return preferred
+
+
 def download_model(cache_dir=None, force: bool = False, verify: bool = True,
-                   url: str = MODEL_URL, expected_sha256: str = MODEL_SHA256) -> Path:
+                   url: str = MODEL_URL, expected_sha256: str = MODEL_SHA256,
+                   filename: str = MODEL_FILENAME) -> Path:
     """Return the path to the pretrained RMVPE .pt checkpoint, downloading it if needed.
 
     Honors `RMVPE_INFER_WEIGHTS` (path to an existing checkpoint) before
@@ -63,20 +81,15 @@ def download_model(cache_dir=None, force: bool = False, verify: bool = True,
     sha256 check (e.g. if you intentionally use a checkpoint that predates
     the recorded hash).
     """
-    env_path = os.environ.get(ENV_VAR)
-    if env_path:
-        path = Path(env_path)
+    path = resolve_model_path(cache_dir, filename=filename)
+    if os.environ.get(ENV_VAR):
         if not path.exists():
-            raise FileNotFoundError(f"${ENV_VAR}={env_path} does not exist")
+            raise FileNotFoundError(f"${ENV_VAR}={path} does not exist")
         return path
 
     cache_dir = Path(cache_dir) if cache_dir else DEFAULT_CACHE_DIR
     cache_dir.mkdir(parents=True, exist_ok=True)
-    # Check both possible names
-    model_path = cache_dir / "model.pt"
-    alt_path = cache_dir / "rmvpe.pt"
-    if not model_path.exists() and alt_path.exists():
-        model_path = alt_path
+    model_path = path
 
     if model_path.exists() and not force:
         if verify:
@@ -95,7 +108,8 @@ def download_model(cache_dir=None, force: bool = False, verify: bool = True,
     # The zip might extract with a different name — find any .pt file
     if not model_path.exists():
         for f in cache_dir.glob("*.pt"):
-            model_path = f
+            if f != model_path:
+                f.replace(model_path)
             break
 
     if verify:

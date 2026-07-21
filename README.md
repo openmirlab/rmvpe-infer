@@ -145,6 +145,21 @@ f0 = rmvpe.infer_from_audio(audio, sample_rate=sr)
 # f0: numpy array of F0 values in Hz (0 = unvoiced)
 ```
 
+### Reusable session
+
+`RMVPESession` owns one resident runtime. Call `load()` once and `infer()` many
+times; `release()` clears the runtime and permits a later reload, while
+`close()` is terminal and idempotent (including context-manager cleanup).
+`cache_info()` only resolves the default or custom checkpoint path—it never
+creates a cache directory or downloads weights.
+
+```python
+from rmvpe_infer import RMVPESession
+
+with RMVPESession(device="cpu") as session:
+    f0 = session.infer(audio, sample_rate=sr)
+```
+
 **Sanity-check it on a known pitch** (the same tones the test suite verifies
 against in `tests/test_pitch_physics.py`):
 
@@ -170,7 +185,7 @@ print(f"median detected pitch: {np.median(voiced):.1f} Hz (expected ~440 Hz)")
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `hop_length` | `160` | Hop size in samples at 16kHz (160 = 10ms frames) |
-| `device` | auto | `"cuda"`, `"cpu"`, or `None` for auto-detect |
+| `device` | auto | `"cpu"`, `"cuda"`, `"cuda:N"`, or `"mps"`; unavailable explicit accelerators raise |
 | `thred` | `0.03` | Voicing confidence threshold |
 | `use_viterbi` | `False` | Use Viterbi decoding for smoother pitch tracks |
 

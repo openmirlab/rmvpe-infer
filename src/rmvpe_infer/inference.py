@@ -10,14 +10,39 @@ Reads: model.py (E2E0/E2E), spec.py (MelSpectrogram), utils.py (F0 decoders),
 constants.py (SAMPLE_RATE et al.).
 """
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 from torchaudio.transforms import Resample
-from .constants import *
-from .model import E2E0, E2E
+from .constants import MEL_FMAX, MEL_FMIN, N_MELS, SAMPLE_RATE, WINDOW_LENGTH
+from .model import E2E0
 from .spec import MelSpectrogram
 from .utils import to_local_average_f0, to_viterbi_f0
+
+
+def resolve_device(device=None) -> torch.device:
+    """Resolve legacy automatic selection and validate explicit devices."""
+    if device is None or device == "auto":
+        return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    try:
+        resolved = torch.device(device)
+    except (TypeError, RuntimeError) as exc:
+        raise ValueError(
+            "device must be None, 'auto', 'cpu', 'cuda', 'cuda:N', or 'mps'"
+        ) from exc
+    if resolved.type == "cpu" and resolved.index is None:
+        return resolved
+    if resolved.type == "mps" and resolved.index is None:
+        mps = getattr(torch.backends, "mps", None)
+        if mps is None or not mps.is_available():
+            raise RuntimeError("MPS was explicitly requested but is not available")
+        return resolved
+    if resolved.type != "cuda":
+        raise ValueError("device must be None, 'auto', 'cpu', 'cuda', 'cuda:N', or 'mps'")
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA was explicitly requested but is not available")
+    if resolved.index is not None and resolved.index >= torch.cuda.device_count():
+        raise RuntimeError(f"CUDA device index {resolved.index} is not available")
+    return resolved
 
 
 class RMVPE:
@@ -30,9 +55,7 @@ class RMVPE:
     """
 
     def __init__(self, model_path, hop_length=160, device=None):
-        if device is None or device == "auto":
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.device = torch.device(device)
+        self.device = resolve_device(device)
 
         model = E2E0(4, 1, (2, 2))
         ckpt = torch.load(model_path, map_location="cpu", weights_only=False)

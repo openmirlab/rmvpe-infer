@@ -10,6 +10,15 @@ All notable changes to rmvpe-infer will be documented in this file.
   support while preserving the existing `RMVPE` API.
 - Package-owned `config/checkpoints.toml` with checksum/provenance metadata and
   generic URL/checksum/config overrides.
+- Strict device validation for `cpu`, `cuda`, `cuda:N`, and `mps`, while
+  preserving legacy automatic CUDA-or-CPU selection.
+
+### Changed
+- `RMVPESession.release()` is reloadable and `close()` is terminal/idempotent;
+  cache inspection now shares the loader resolver without downloading or
+  materializing directories.
+- Public download URL/hash constants are now derived from packaged checkpoint
+  TOML metadata; custom session overrides affect both load and cache reporting.
 
 ## [0.1.0] - 2026-07-12
 
