@@ -20,24 +20,34 @@ from .utils import to_local_average_f0, to_viterbi_f0
 
 
 def resolve_device(device=None) -> torch.device:
-    """Resolve legacy automatic selection and validate explicit devices."""
+    """Resolve legacy automatic selection and validate explicit devices.
+
+    MPS is permanently out of scope for this project (org canon art. 4b,
+    ratified 2026-09-14, openmirlab-dev 5e588e6): an explicit 'mps' request
+    always raises `ValueError`, unconditionally -- this check never consults
+    `torch.backends.mps.is_available()`, so it can't be fooled by a
+    monkeypatched or genuinely-available MPS backend. 'auto' only ever
+    considers CUDA-or-CPU and can never resolve to MPS.
+    """
+    if device is not None and str(device).lower().startswith("mps"):
+        raise ValueError(
+            "Device 'mps' is not supported by rmvpe-infer. Apple MLX/MPS "
+            "backends are permanently out of scope for this project (org "
+            "canon art. 4b). Supported devices: 'cuda', 'cuda:N', 'cpu', or "
+            "'auto'."
+        )
     if device is None or device == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     try:
         resolved = torch.device(device)
     except (TypeError, RuntimeError) as exc:
         raise ValueError(
-            "device must be None, 'auto', 'cpu', 'cuda', 'cuda:N', or 'mps'"
+            "device must be None, 'auto', 'cpu', 'cuda', or 'cuda:N'"
         ) from exc
     if resolved.type == "cpu" and resolved.index is None:
         return resolved
-    if resolved.type == "mps" and resolved.index is None:
-        mps = getattr(torch.backends, "mps", None)
-        if mps is None or not mps.is_available():
-            raise RuntimeError("MPS was explicitly requested but is not available")
-        return resolved
     if resolved.type != "cuda":
-        raise ValueError("device must be None, 'auto', 'cpu', 'cuda', 'cuda:N', or 'mps'")
+        raise ValueError("device must be None, 'auto', 'cpu', 'cuda', or 'cuda:N'")
     if not torch.cuda.is_available():
         raise RuntimeError("CUDA was explicitly requested but is not available")
     if resolved.index is not None and resolved.index >= torch.cuda.device_count():

@@ -4,6 +4,16 @@ All notable changes to rmvpe-infer will be documented in this file.
 
 ## Unreleased
 
+### Removed
+- MPS device support (org decision 2026-09-14). Apple MLX/MPS backends are
+  permanently out of scope (org canon `openmirlab-dev` 5e588e6, art. 4b).
+  `device="mps"` now raises `ValueError` unconditionally instead of
+  resolving; `"auto"` never selects MPS. Supported device vocabulary:
+  `"auto"`, `"cpu"`, `"cuda"`, `"cuda:N"` (plus `None`, treated as `"auto"`).
+  MPS support was never part of a released version — it was added and
+  removed within this same `Unreleased` section — so this is not a breaking
+  change for any published release.
+
 ### Changed
 - `config/checkpoints.toml`'s checkpoint `license` field: verified against
   primary sources (Dream-High/RMVPE's Apache-2.0 code license vs. the
@@ -22,8 +32,9 @@ All notable changes to rmvpe-infer will be documented in this file.
   support while preserving the existing `RMVPE` API.
 - Package-owned `config/checkpoints.toml` with checksum/provenance metadata and
   generic URL/checksum/config overrides.
-- Strict device validation for `cpu`, `cuda`, `cuda:N`, and `mps`, while
-  preserving legacy automatic CUDA-or-CPU selection.
+- Strict device validation for `cpu`, `cuda`, and `cuda:N`, while preserving
+  legacy automatic CUDA-or-CPU selection. (Originally also validated `mps`;
+  removed later in this same `Unreleased` section, see "Removed" above.)
 
 ### Changed
 - `RMVPESession.release()` is reloadable and `close()` is terminal/idempotent;

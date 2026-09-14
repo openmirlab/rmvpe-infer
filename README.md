@@ -193,7 +193,7 @@ print(f"median detected pitch: {np.median(voiced):.1f} Hz (expected ~440 Hz)")
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `hop_length` | `160` | Hop size in samples at 16kHz (160 = 10ms frames) |
-| `device` | auto | `"cpu"`, `"cuda"`, `"cuda:N"`, or `"mps"`; unavailable explicit accelerators raise |
+| `device` | auto | `"cpu"`, `"cuda"`, or `"cuda:N"`; unavailable explicit accelerators raise. `"mps"` is not supported (Apple MLX/MPS is permanently out of scope) and raises `ValueError` |
 | `thred` | `0.03` | Voicing confidence threshold |
 | `use_viterbi` | `False` | Use Viterbi decoding for smoother pitch tracks |
 

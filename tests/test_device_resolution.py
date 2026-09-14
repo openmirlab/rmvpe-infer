@@ -83,11 +83,8 @@ def test_explicit_cuda_index_is_validated_and_reaches_model(monkeypatch):
 
 def test_unavailable_or_invalid_explicit_devices_raise(monkeypatch):
     monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
-    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
     with pytest.raises(RuntimeError, match="CUDA"):
         RMVPE("fake.pt", device="cuda")
-    with pytest.raises(RuntimeError, match="MPS"):
-        RMVPE("fake.pt", device="mps")
     with pytest.raises(ValueError):
         RMVPE("fake.pt", device="metal")
 
@@ -95,3 +92,28 @@ def test_unavailable_or_invalid_explicit_devices_raise(monkeypatch):
     monkeypatch.setattr(torch.cuda, "device_count", lambda: 1)
     with pytest.raises(RuntimeError, match="index 1"):
         RMVPE("fake.pt", device="cuda:1")
+
+
+def test_mps_rejected_outright_even_when_available(monkeypatch):
+    """MPS is permanently out of scope (org canon art. 4b) -- 'mps' must raise
+    ValueError unconditionally, even when the backend reports itself available.
+    """
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: True)
+    with pytest.raises(ValueError, match="mps"):
+        RMVPE("fake.pt", device="mps")
+
+
+def test_mps_rejected_when_unavailable_too(monkeypatch):
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
+    with pytest.raises(ValueError, match="mps"):
+        RMVPE("fake.pt", device="mps")
+
+
+def test_auto_never_resolves_to_mps_even_if_available(monkeypatch):
+    """'auto' must only ever consider CUDA-or-CPU, never MPS -- even when MPS
+    reports itself available and CUDA is unavailable.
+    """
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: True)
+    rmvpe = RMVPE("fake.pt", device="auto")
+    assert str(rmvpe.device) == "cpu"
