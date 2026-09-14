@@ -1,8 +1,24 @@
+# License verified 2026-09-14 against primary sources (not a claim, a checked
+# fact — see CLAUDE.md's "Model weights" section for the full writeup):
+#   - Original RMVPE code (Dream-High/RMVPE, the paper authors) is
+#     Apache-2.0: https://github.com/Dream-High/RMVPE/blob/main/LICENSE
+#     (`gh api repos/Dream-High/RMVPE --jq .license` -> apache-2.0).
+#   - The checkpoint below was trained and released by yxlllc's fork
+#     (https://github.com/yxlllc/RMVPE), which carries NO LICENSE file
+#     (`gh api repos/yxlllc/RMVPE --jq .license` -> null; repo root listing
+#     has no LICENSE), no license statement in its README, and no terms in
+#     the 230917 release notes (`gh api repos/yxlllc/RMVPE/releases/tags/230917`).
+#   - Apache-2.0 covers the original *code*; it does not automatically
+#     extend to a *trained checkpoint* published separately by a different
+#     party (yxlllc) with no license statement of its own. No license is
+#     granted anywhere in the chain for this specific artifact -> NOASSERTION
+#     (all rights reserved by default; see README "Pretrained Model" and
+#     "License" sections for the redistribution/commercial-use consequence).
 [checkpoints.rmvpe]
 url = "https://github.com/yxlllc/RMVPE/releases/download/230917/rmvpe.zip"
 sha256 = "19dc1809cf4cdb0a18db93441816bc327e14e5644b72eeaae5220560c6736fe2"
 filename = "model.pt"
-license = "Unknown checkpoint license; verify upstream terms before redistribution"
-provenance = "yxlllc/RMVPE release 230917"
+license = "NOASSERTION"
+provenance = "yxlllc/RMVPE release 230917 (fork of Dream-High/RMVPE, Apache-2.0 code; checkpoint itself carries no license grant)"
 source_revision = "230917"
-updated_at = "2026-07-12"
+updated_at = "2026-09-14"

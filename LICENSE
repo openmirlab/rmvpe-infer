@@ -20,3 +20,22 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+NOTICE on scope (added 2026-09-14, see README's "Pretrained Model" and
+"License" sections and CLAUDE.md's "Checkpoint license" section for the
+full, sourced writeup): "the Software" above refers to this repository's
+source code. It does NOT cover the RMVPE model checkpoint that this
+package downloads at runtime from
+https://github.com/yxlllc/RMVPE/releases/tag/230917. That checkpoint
+carries no license grant from any upstream party (verified against
+yxlllc/RMVPE and its parent Dream-High/RMVPE) and is tracked separately as
+`license = "NOASSERTION"` in `src/rmvpe_infer/config/checkpoints.toml`.
+
+Separately, whether this repository's own vendored architecture files
+(`model.py`, `deepunet.py`, etc. — ported from yxlllc/RMVPE, itself a fork
+of Dream-High/RMVPE's Apache-2.0-licensed code, confirmed by matching
+filenames in both repos) are correctly described by the "MIT License,
+Copyright (c) 2023 yxlllc" header above is an open question flagged for a
+maintainer decision, not resolved by this notice — see CLAUDE.md.

@@ -87,6 +87,14 @@ cite whichever version matches your bibliography style.
 - Source separation / stem splitting (RMVPE works directly on polyphonic mixes; that's the point)
 - Voice conversion or any downstream use of the extracted pitch (e.g. RVC-style pipelines) — those are separate projects that may *consume* this package's output, not something this package does
 
+**Weights license (verified 2026-09-14, disclosed gap, not a bundling
+exception):** the downloaded RMVPE checkpoint has **no license grant from
+any upstream party** — see [Pretrained Model](#pretrained-model) below.
+Treat it as all-rights-reserved by default: redistribution or commercial
+use of the checkpoint carries real risk until an upstream author
+explicitly licenses it. This package's own MIT license (below) covers
+this repository's source code, not the downloaded checkpoint.
+
 ---
 
 ## Install
@@ -209,13 +217,35 @@ The pretrained checkpoint is automatically downloaded from the [official RMVPE r
   currently an openmirlab-controlled mirror. Set `RMVPE_INFER_WEIGHTS=/path/to/checkpoint.pt`
   to point at your own copy and skip the download entirely (also useful for
   offline/air-gapped environments).
+- **License (verified 2026-09-14, primary sources)**: **NOASSERTION** — no
+  license is granted for this checkpoint by any party in its chain.
+  - The original RMVPE code (paper authors, [Dream-High/RMVPE](https://github.com/Dream-High/RMVPE))
+    is [Apache-2.0](https://github.com/Dream-High/RMVPE/blob/main/LICENSE)
+    (`gh api repos/Dream-High/RMVPE --jq .license` → `apache-2.0`) — this
+    covers that repo's *code*, not a trained checkpoint published elsewhere.
+  - The checkpoint actually shipped here was trained and released by
+    [yxlllc/RMVPE](https://github.com/yxlllc/RMVPE) (a fork of Dream-High's
+    repo) at release [`230917`](https://github.com/yxlllc/RMVPE/releases/tag/230917).
+    That fork carries **no LICENSE file** (`gh api repos/yxlllc/RMVPE --jq
+    .license` → `null`; confirmed by listing the repo root, no `LICENSE`
+    present), no license statement in its README, and no terms in the
+    `230917` release notes.
+  - Net effect: this package's own [model.py](src/rmvpe_infer/model.py)/
+    [deepunet.py](src/rmvpe_infer/deepunet.py) architecture is vendored from
+    yxlllc's fork (see that file's header), and the checkpoint trained
+    against that architecture has no explicit license from yxlllc. Absent an
+    explicit grant, default copyright applies — treat the checkpoint as
+    all-rights-reserved for redistribution/commercial-use purposes until an
+    upstream author (Dream-High or yxlllc) states otherwise. This is
+    disclosed, not silently bundled around; see `config/checkpoints.toml`'s
+    `license = "NOASSERTION"` field and its inline verification notes.
 
 ---
 
 ## Testing
 
 ```bash
-# CI-safe unit tests — no checkpoint, no network, no GPU (31 tests)
+# CI-safe unit tests — no checkpoint, no network, no GPU (51 tests)
 uv run pytest tests/
 
 # Weight-dependent tests — needs the real checkpoint (auto-downloads if
@@ -271,7 +301,11 @@ See [CLAUDE.md](CLAUDE.md) for the full test-layer breakdown and dev workflow no
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE](LICENSE) for details. **This covers this
+repository's source code, not the downloaded checkpoint.** The RMVPE
+checkpoint is a separate artifact under **no verified license**
+(`NOASSERTION`) — see [Pretrained Model](#pretrained-model) above for the
+verified findings and sources.
 
 This project includes code adapted from **RMVPE** by yxlllc (see
 Acknowledgments above).

@@ -4,7 +4,19 @@ All notable changes to rmvpe-infer will be documented in this file.
 
 ## Unreleased
 
+### Changed
+- `config/checkpoints.toml`'s checkpoint `license` field: verified against
+  primary sources (Dream-High/RMVPE's Apache-2.0 code license vs. the
+  unlicensed yxlllc/RMVPE fork that actually trained and released the
+  checkpoint) and set to the honest, verified value `"NOASSERTION"`,
+  replacing the previous unverified `"Unknown checkpoint license..."`
+  placeholder. README/CLAUDE.md/LICENSE updated to document the finding and
+  its redistribution/commercial-use consequence; see CLAUDE.md's "Checkpoint
+  license" section for the full sourced writeup.
+
 ### Added
+- Test asserting the checkpoint catalog's `license` field is a real,
+  non-empty, non-placeholder value (`tests/test_config.py`).
 - `RMVPESession` explicit lifecycle facade with ready-only inference,
   `load`, `release`, `close`, status, cache metadata, and context-manager
   support while preserving the existing `RMVPE` API.

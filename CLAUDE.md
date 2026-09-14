@@ -50,10 +50,70 @@ only added sha256 verification (`download.MODEL_SHA256`,
 `RMVPE_INFER_WEIGHTS` env var override so tests/CI/offline users can point
 at a local copy without touching the network or the third-party URL at all.
 
+### Checkpoint license (verified 2026-09-14, primary sources)
+
+`config/checkpoints.toml`'s `license` field previously said
+`"Unknown checkpoint license; verify upstream terms before redistribution"`.
+Verified this round, not left as a guess — resolves to **`NOASSERTION`**
+(no license grant found anywhere in the chain, matching the org convention
+`scnet-infer` already uses for the same situation). Note the SPDX-precision
+nuance: SPDX `NOASSERTION` technically means "no assertion made" (i.e. not
+checked), while this finding is closer to SPDX `NONE` ("checked; confirmed
+no license is granted"). `NOASSERTION` is used here to match the existing
+sibling-package convention in this org's catalog rather than introduce a
+third value; the distinction from an *unchecked* field is that this one
+has verification date + sources recorded inline:
+
+- **Code license (Dream-High/RMVPE, the paper authors' original repo)**:
+  [Apache-2.0](https://github.com/Dream-High/RMVPE/blob/main/LICENSE),
+  confirmed via `gh api repos/Dream-High/RMVPE --jq .license` → `apache-2.0`
+  and reading the LICENSE file directly. This governs *that repo's source
+  code*, not a checkpoint trained and published elsewhere.
+- **Checkpoint license (yxlllc/RMVPE, a fork of Dream-High's repo, release
+  `230917`)**: **none found**. `gh api repos/yxlllc/RMVPE --jq .license` →
+  `null`; the fork's root listing has no `LICENSE` file at all
+  (`gh api repos/yxlllc/RMVPE/contents --jq '.[].name'`); its README
+  (`raw.githubusercontent.com/yxlllc/RMVPE/main/README.md`) is
+  training/usage instructions only, no license statement; the `230917`
+  release notes (`gh api repos/yxlllc/RMVPE/releases/tags/230917`) state
+  only training-data/step-count facts, no terms.
+- **Consequence**: this package's own `model.py`/`deepunet.py` (the
+  architecture the shipped checkpoint loads weights into) is vendored
+  near-verbatim from yxlllc/RMVPE's source (see `deepunet.py`'s module
+  header) — i.e. from the *unlicensed* fork, not directly from Dream-High's
+  Apache-2.0 repo. The checkpoint itself, trained by yxlllc against that
+  architecture, has no license grant from any party. Per article 3's
+  no-license-upstream rule, this is treated as all-rights-reserved by
+  default: redistribution/commercial-use risk is real and undocumented
+  until an upstream author (Dream-High or yxlllc) grants explicit terms.
+  Recorded in `checkpoints.toml`'s inline comment, README's "Pretrained
+  Model" + "License" sections, and `LICENSE`'s scope notice.
+- **Separate, larger open question (flagged for maintainer ratification,
+  not acted on this round — out of this pass's scope)**: this repo's own
+  top-level `LICENSE` file has claimed "MIT License, Copyright (c) 2023
+  yxlllc (original RMVPE)" since inception, but yxlllc never granted MIT
+  terms for the vendored architecture code (their fork has no LICENSE at
+  all). Confirmed this round: `gh api repos/Dream-High/RMVPE/contents/src
+  --jq '.[].name'` lists the same filenames (`model.py`, `deepunet.py`,
+  `seq.py`, `spec.py`, `utils.py`, `constants.py`) as yxlllc/RMVPE's own
+  `src/` — i.e. yxlllc's fork is a modification of Dream-High's
+  Apache-2.0-licensed files, not an independent rewrite. That makes the
+  vendored code in this package Apache-2.0-derived, and the current
+  "MIT License, Copyright (c) 2023 yxlllc" header is **very likely
+  incorrect** (wrong license family and wrong attributed author) rather
+  than merely an open question — but changing a repo's stated code license
+  is a maintainer call this round deliberately did not make unilaterally.
+  Also checked `yxlllc/RMVPE`'s issue tracker
+  (`gh api 'repos/yxlllc/RMVPE/issues?state=all'`) for any license
+  statement — only two unrelated ONNX-export issues exist, nothing on
+  licensing. `openmirlab-dev/radar.md:1527` independently records the same
+  "no LICENSE file found" finding for yxlllc/RMVPE, verified 2026-07-12 —
+  consistent with, not contradicting, this round's re-verification.
+
 ## Testing
 
 - `pytest tests/` (or `uv run pytest tests/`) runs the **CI-safe unit
-  suite** (31 tests as of this writing): import smoke, model construction/
+  suite** (51 tests as of this writing): import smoke, model construction/
   forward-pass shape+range sanity (no checkpoint needed, random init),
   decode-math unit tests, mel spectrogram sanity, and download.py's
   checksum/env-var/cache logic (network mocked out). No weights, no
