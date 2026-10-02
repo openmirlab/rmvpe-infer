@@ -245,7 +245,7 @@ The pretrained checkpoint is automatically downloaded from the [official RMVPE r
 ## Testing
 
 ```bash
-# CI-safe unit tests — no checkpoint, no network, no GPU (51 tests)
+# CI-safe unit tests — no checkpoint, no network, no GPU
 uv run pytest tests/
 
 # Weight-dependent tests — needs the real checkpoint (auto-downloads if
@@ -256,7 +256,9 @@ uv run pytest tests/ -m weights
 ```
 
 Push/PR CI runs this offline suite on Python 3.10, 3.11, and 3.12 and verifies
-the interpreter selected for each job. Weight-dependent checks remain opt-in.
+the interpreter selected for each job. Python 3.10 uses the automatically installed
+`tomli` backport for checkpoint configuration; newer Python uses stdlib `tomllib`.
+Weight-dependent checks remain opt-in.
 
 See [CLAUDE.md](CLAUDE.md) for the full test-layer breakdown.
 

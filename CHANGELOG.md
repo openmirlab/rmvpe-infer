@@ -4,6 +4,10 @@ All notable changes to rmvpe-infer will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- Restore Python 3.10 package imports with a declared conditional `tomli` backport
+  for checkpoint configuration; newer Python retains stdlib `tomllib`.
+
 ### CI
 - Add the missing Python 3.11 offline CI job and verify each selected interpreter,
   matching the existing 3.10–3.12 support classifiers.

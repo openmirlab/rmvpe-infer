@@ -148,7 +148,9 @@ Push/PR CI covers all declared Python classifiers (3.10, 3.11, 3.12).
 `UV_PYTHON` selects each matrix interpreter; an assertion verifies the running
 version before `uv run --no-sync pytest tests/ -q`. This covers the existing
 offline suite, not real-weight or network validation. Workflow permissions are
-read-only. No package dependency or numerical code changes accompany this fix.
+read-only. The matrix exposed an unconditional `tomllib` import on Python 3.10;
+config.py now uses a conditional `tomli>=2.0` backport dependency there. Model
+code, checkpoint values, and numerical dependencies are unchanged.
 
 ## Packaging
 
