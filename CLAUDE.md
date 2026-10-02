@@ -143,6 +143,13 @@ has verification date + sources recorded inline:
 - CI: `.github/workflows/test.yml` runs the CI-safe suite on push/PR;
   `.github/workflows/publish.yml`'s `publish` job `needs: [test]`.
 
+
+Push/PR CI covers all declared Python classifiers (3.10, 3.11, 3.12).
+`UV_PYTHON` selects each matrix interpreter; an assertion verifies the running
+version before `uv run --no-sync pytest tests/ -q`. This covers the existing
+offline suite, not real-weight or network validation. Workflow permissions are
+read-only. No package dependency or numerical code changes accompany this fix.
+
 ## Packaging
 
 Build backend: hatchling. Version is single-sourced in

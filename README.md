@@ -255,6 +255,9 @@ uv run pytest tests/
 uv run pytest tests/ -m weights
 ```
 
+Push/PR CI runs this offline suite on Python 3.10, 3.11, and 3.12 and verifies
+the interpreter selected for each job. Weight-dependent checks remain opt-in.
+
 See [CLAUDE.md](CLAUDE.md) for the full test-layer breakdown.
 
 ---
