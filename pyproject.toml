@@ -30,6 +30,7 @@ dependencies = [
     "torchaudio>=2.0",
     "numpy>=1.23",
     "librosa>=0.10",
+    "tomli>=2.0; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]

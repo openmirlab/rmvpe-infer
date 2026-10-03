@@ -4,6 +4,14 @@ All notable changes to rmvpe-infer will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- Restore Python 3.10 package imports with a declared conditional `tomli` backport
+  for checkpoint configuration; newer Python retains stdlib `tomllib`.
+
+### CI
+- Add the missing Python 3.11 offline CI job and verify each selected interpreter,
+  matching the existing 3.10–3.12 support classifiers.
+
 ### Removed
 - MPS device support (org decision 2026-09-14). Apple MLX/MPS backends are
   permanently out of scope (org canon `openmirlab-dev` 5e588e6, art. 4b).

@@ -1,6 +1,7 @@
 """Package-owned checkpoint configuration and generic overrides.
 
-Reads: config/checkpoints.toml.  Runtime configuration stays package-local so
+Reads: pathlib, tomllib (tomli on Python 3.10), config/checkpoints.toml.
+Runtime configuration stays package-local so
 callers can override URLs, checksums, and cache locations without a global
 registry.
 """
@@ -8,7 +9,10 @@ registry.
 from __future__ import annotations
 
 from pathlib import Path
-import tomllib
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10
+    import tomli as tomllib
 
 _CONFIG_PATH = Path(__file__).with_name("config") / "checkpoints.toml"
 
