@@ -165,3 +165,7 @@ Build backend: hatchling. Version is single-sourced in
 
 Uses `uv`. `uv sync --extra dev` gets pytest. Use `uv run`, not bare
 `python`, so the editable install and dependency versions match CI.
+
+## Distribution policy (2026-10-05)
+
+Install the current source from `https://github.com/openmirlab/rmvpe-infer`. GitHub release workflows verify and build distributions but do not upload to PyPI. Existing PyPI versions, where any exist, are historical snapshots. Update installation examples to use Git when changing this package.
