@@ -4,6 +4,8 @@ All notable changes to rmvpe-infer will be documented in this file.
 
 ## Unreleased
 
+
+- Correct README installation guidance for the current Git-only distribution of `rmvpe-infer`.
 ### Fixed
 - Restore Python 3.10 package imports with a declared conditional `tomli` backport
   for checkpoint configuration; newer Python retains stdlib `tomllib`.

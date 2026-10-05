@@ -1,325 +1,152 @@
-# RMVPE-Infer
+# rmvpe-infer
 
-**Production-ready, inference-only toolkit for robust vocal pitch estimation in polyphonic music**
-
-RMVPE-Infer provides a clean, lightweight API for running vocal pitch (F0) estimation using the RMVPE model with automatic checkpoint management.
-
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red.svg)](https://pytorch.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
----
+Estimate vocal pitch (F0) from an audio file or a mono audio array using
+[RMVPE](https://github.com/yxlllc/RMVPE). This package provides inference,
+checkpoint download, and a command-line tool; it does not train a model or
+separate vocals. The repository is public, but **`rmvpe-infer` is not currently
+published on PyPI**.
 
 ## Why this exists
 
-[RMVPE](https://github.com/yxlllc/RMVPE) is a deep U-Net + BiGRU model for
-robust vocal pitch (F0) estimation directly from polyphonic mixes, published
-at INTERSPEECH 2023. The reference implementation is a research repo: it
-ships training code, several loosely-related sub-projects, and a pretrained
-checkpoint distributed as a `.zip` attached to a GitHub release rather than
-a package on PyPI. It has since become best known as the pitch-extraction
-backbone quietly vendored inside voice-conversion projects (e.g. RVC), which
-means the "just run inference" path is buried under code most callers don't
-need.
-
-RMVPE-Infer reprovides just that inference path: a small, pip-installable,
-inference-only package with a lazy-compatible one-shot class (`RMVPE`) and an
-explicit `RMVPESession` lifecycle facade, an auto-downloading checkpoint
-fetcher with sha256 verification, and a CLI —
-nothing else from the original repo.
-
----
+The [original RMVPE research](https://github.com/Dream-High/RMVPE) estimates
+vocal pitch directly from polyphonic music. This repository packages its
+inference path behind a small Python API and CLI, with checkpoint caching.
 
 ## Acknowledgments
 
-This project wraps, and would not exist without, the original research and
-implementation:
-
-- **[yxlllc/RMVPE](https://github.com/yxlllc/RMVPE)** — the reference
-  implementation this package wraps; also the current host of the pretrained
-  checkpoint (see [Pretrained Model](#pretrained-model) below).
-- **Haojie Wei, Xueke Cao, Tangpeng Dan, Yueguo Chen** — authors of the
-  RMVPE paper (see [Citation](#citation)).
-- **[INTERSPEECH 2023](https://doi.org/10.21437/Interspeech.2023-528)** —
-  the paper's publication venue (Dublin, Ireland, August 2023).
-
----
+- **Haojie Wei, Xueke Cao, Tangpeng Dan, and Yueguo Chen** developed RMVPE
+  and published the [INTERSPEECH 2023 paper](https://doi.org/10.21437/Interspeech.2023-528).
+- **[Dream-High/RMVPE](https://github.com/Dream-High/RMVPE)** is the
+  original research code repository.
+- **[yxlllc/RMVPE](https://github.com/yxlllc/RMVPE)** is the fork from
+  which this package adapts inference code and whose
+  [release 230917](https://github.com/yxlllc/RMVPE/releases/tag/230917)
+  hosts the default checkpoint.
 
 ## Citation
 
-If you use RMVPE-Infer in your research, please cite the original paper:
+Please cite the original paper when using this model:
 
 ```bibtex
-@article{wei2023rmvpe,
-    title   = {RMVPE: A Robust Model for Vocal Pitch Estimation in Polyphonic Music},
-    author  = {Wei, Haojie and Cao, Xueke and Dan, Tangpeng and Chen, Yueguo},
-    journal = {arXiv preprint arXiv:2306.15412},
-    year    = {2023}
+@inproceedings{wei23b_interspeech,
+  title     = {{RMVPE: A Robust Model for Vocal Pitch Estimation in Polyphonic Music}},
+  author    = {Haojie Wei and Xueke Cao and Tangpeng Dan and Yueguo Chen},
+  year      = {2023},
+  booktitle = {{Interspeech 2023}},
+  pages     = {5421--5425},
+  doi       = {10.21437/Interspeech.2023-528},
+  issn      = {2958-1796},
 }
 ```
 
-The paper was later published at INTERSPEECH 2023 (pp. 5421-5425,
-[doi:10.21437/Interspeech.2023-528](https://doi.org/10.21437/Interspeech.2023-528));
-cite whichever version matches your bibliography style.
-
----
-
-## Features
-
-- **Inference Only**: Lightweight package focused on production inference
-- **Auto-Download**: Automatic pretrained checkpoint download (~340 MB), sha256-verified
-- **Polyphonic-Robust**: Extracts vocal pitch directly from mixed audio without source separation
-- **GPU Accelerated**: Full CUDA support with automatic device detection
-- **CLI Tool**: `rmvpe-infer` command for quick pitch extraction
-- **Python API**: Clean programmatic interface
-
----
-
 ## Scope
 
-**In scope:** a single-model, inference-only wrapper around RMVPE — load a
-  checkpoint, run F0 estimation on an audio buffer, get back per-frame pitch
-  in Hz. The public surface is `RMVPE`, `RMVPESession`, and `download_model`.
-
-**Out of scope, forever:**
-- Training or fine-tuning RMVPE (this package never loads a dataset or computes a loss)
-- Other pitch-estimation models (CREPE, pYIN, etc.) — this is RMVPE-only by design
-- Source separation / stem splitting (RMVPE works directly on polyphonic mixes; that's the point)
-- Voice conversion or any downstream use of the extracted pitch (e.g. RVC-style pipelines) — those are separate projects that may *consume* this package's output, not something this package does
-
-**Weights license (verified 2026-09-14, disclosed gap, not a bundling
-exception):** the downloaded RMVPE checkpoint has **no license grant from
-any upstream party** — see [Pretrained Model](#pretrained-model) below.
-Treat it as all-rights-reserved by default: redistribution or commercial
-use of the checkpoint carries real risk until an upstream author
-explicitly licenses it. This package's own MIT license (below) covers
-this repository's source code, not the downloaded checkpoint.
-
----
+The public API is `RMVPE`, `RMVPESession`, and `download_model`.
+Training, other pitch estimators, source separation, and voice conversion
+are outside this inference-only package.
 
 ## Install
 
-```bash
-# Using pip
-pip install rmvpe-infer
+Python 3.10 or newer is required. Install the current source with:
 
-# Using UV (recommended)
-uv pip install rmvpe-infer
+```bash
+python -m pip install "git+https://github.com/openmirlab/rmvpe-infer.git"
 ```
 
-### Development Installation
+For a reproducible application, replace the Git URL's default branch with a
+reviewed commit, for example
+`git+https://github.com/openmirlab/rmvpe-infer.git@014572b7d4fdafb570396da4fb350eb627e6e279`.
+The install includes PyTorch, torchaudio, NumPy, and librosa; choose a PyTorch
+build appropriate for your device if you need CUDA.
+
+To work on this repository:
 
 ```bash
-# Clone repository
 git clone https://github.com/openmirlab/rmvpe-infer.git
 cd rmvpe-infer
-
-# Install with UV
 uv sync --extra dev
-
-# Install with pip
-pip install -e ".[dev]"
 ```
 
----
+## Run pitch estimation
 
-## Quick Start
-
-### CLI Inference
+The first inference downloads the upstream checkpoint unless it is already
+cached or you supply one. The command writes CSV columns `timestamp_s` and
+`f0_hz`; zero Hz denotes an unvoiced frame.
 
 ```bash
-# Basic usage (auto-downloads model on first run)
 rmvpe-infer -i vocals.wav -o f0.csv
-
-# With options
 rmvpe-infer -i vocals.wav -o f0.csv --threshold 0.05 --viterbi --device cuda
 ```
 
-### Python API
+For a mono NumPy array, use the reusable session when processing multiple
+buffers. The context manager loads the model once and releases it on exit.
 
 ```python
-from rmvpe_infer import RMVPE, download_model
-
-# Download pretrained model (cached after first call)
-model_path = download_model()
-
-# Load model (auto-detects GPU)
-rmvpe = RMVPE(str(model_path))
-
-# Run inference
 import librosa
-audio, sr = librosa.load("vocals.wav", sr=None, mono=True)
-f0 = rmvpe.infer_from_audio(audio, sample_rate=sr)
-# f0: numpy array of F0 values in Hz (0 = unvoiced)
-```
-
-### Reusable session
-
-`RMVPESession` owns one resident runtime. Call `load()` once and `infer()` many
-times; `release()` clears the runtime and permits a later reload, while
-`close()` is terminal and idempotent (including context-manager cleanup).
-`cache_info()` only resolves the default or custom checkpoint path—it never
-creates a cache directory or downloads weights.
-
-```python
 from rmvpe_infer import RMVPESession
 
-with RMVPESession(device="cpu") as session:
-    f0 = session.infer(audio, sample_rate=sr)
+audio, sample_rate = librosa.load("vocals.wav", sr=None, mono=True)
+with RMVPESession() as session:
+    f0_hz = session.infer(audio, sample_rate=sample_rate)
 ```
 
-**Sanity-check it on a known pitch** (the same tones the test suite verifies
-against in `tests/test_pitch_physics.py`):
+If you manage the model yourself, `RMVPE(str(download_model()))` loads the
+default checkpoint. Its `infer_from_audio(audio, sample_rate=...)` method
+returns the same one-dimensional NumPy array of pitch values. Both APIs
+resample input to the model's 16 kHz rate.
 
-```python
-import numpy as np
-from rmvpe_infer import RMVPE, download_model
+| Setting | Where to set it | Default | Effect |
+| --- | --- | --- | --- |
+| `device` | `RMVPESession(...)`, `RMVPE(...)`, CLI `--device` | CUDA if available, otherwise CPU | Accepts `cpu`, `cuda`, `cuda:N`, or `auto`; MPS is unsupported. |
+| `hop_length` | constructors, CLI `--hop-length` | 160 | Samples per output frame at 16 kHz (10 ms). |
+| `thred` | `infer(...)`, `infer_from_audio(...)`; CLI `--threshold` | 0.03 | Voicing threshold. The Python spelling is `thred`. |
+| `use_viterbi` | `infer(...)`, `infer_from_audio(...)`; CLI `--viterbi` | `False` | Enables Viterbi pitch decoding. |
 
-rmvpe = RMVPE(str(download_model()))
+The `device` argument accepted by `infer_from_audio` is retained for
+compatibility but ignored; set the device when constructing the model or
+session.
 
-sr = 16000
-t = np.arange(sr) / sr  # 1 second
-audio = (0.5 * np.sin(2 * np.pi * 440.0 * t)).astype(np.float32)  # A4, 440Hz
+## Checkpoint and offline use
 
-f0 = rmvpe.infer_from_audio(audio, sample_rate=sr)
-voiced = f0[f0 > 0]
-print(f"median detected pitch: {np.median(voiced):.1f} Hz (expected ~440 Hz)")
-```
+The default checkpoint comes from [yxlllc/RMVPE release 230917](https://github.com/yxlllc/RMVPE/releases/tag/230917),
+not from this repository or an OpenMIRLab mirror. On first use,
+`download_model()` extracts it to `~/.cache/rmvpe/`. It verifies SHA-256
+`19dc1809cf4cdb0a18db93441816bc327e14e5644b72eeaae5220560c6736fe2`
+on download and on subsequent default-cache use. A mismatch raises
+`ChecksumMismatchError`.
 
----
+To use a checkpoint you already have, set `RMVPE_INFER_WEIGHTS` to its `.pt`
+path, pass `model_path` to `RMVPESession`, or use the CLI's `--model` option.
+These explicit local paths **bypass the built-in checksum check**; verify
+their provenance yourself. The package and its Git history do not include
+the checkpoint.
 
-## Parameters
+## License and upstream rights
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `hop_length` | `160` | Hop size in samples at 16kHz (160 = 10ms frames) |
-| `device` | auto | `"cpu"`, `"cuda"`, or `"cuda:N"`; unavailable explicit accelerators raise. `"mps"` is not supported (Apple MLX/MPS is permanently out of scope) and raises `ValueError` |
-| `thred` | `0.03` | Voicing confidence threshold |
-| `use_viterbi` | `False` | Use Viterbi decoding for smoother pitch tracks |
-
----
-
-## Pretrained Model
-
-The pretrained checkpoint is automatically downloaded from the [official RMVPE release](https://github.com/yxlllc/RMVPE/releases/tag/230917) (~350 MB extracted `.pt`, from `rmvpe.zip`).
-
-- **Architecture**: Deep U-Net encoder-decoder + BiGRU
-- **Training data**: MIR-1K, PTDB, M4Singer
-- **Frame rate**: 10ms (100 fps at 16kHz)
-- **Frequency range**: ~30 Hz to 8000 Hz
-- **Cache location**: `~/.cache/rmvpe/`
-- **Provenance**: sha256 of the extracted checkpoint is
-  `19dc1809cf4cdb0a18db93441816bc327e14e5644b72eeaae5220560c6736fe2`,
-  verified automatically on every download and cache hit
-  (`rmvpe_infer.download.verify_checksum`) — a corrupted or tampered file
-  raises `ChecksumMismatchError` instead of loading silently.
-- **Hosting note**: this URL is yxlllc's own third-party GitHub release, not
-  currently an openmirlab-controlled mirror. Set `RMVPE_INFER_WEIGHTS=/path/to/checkpoint.pt`
-  to point at your own copy and skip the download entirely (also useful for
-  offline/air-gapped environments).
-- **License (verified 2026-09-14, primary sources)**: **NOASSERTION** — no
-  license is granted for this checkpoint by any party in its chain.
-  - The original RMVPE code (paper authors, [Dream-High/RMVPE](https://github.com/Dream-High/RMVPE))
-    is [Apache-2.0](https://github.com/Dream-High/RMVPE/blob/main/LICENSE)
-    (`gh api repos/Dream-High/RMVPE --jq .license` → `apache-2.0`) — this
-    covers that repo's *code*, not a trained checkpoint published elsewhere.
-  - The checkpoint actually shipped here was trained and released by
-    [yxlllc/RMVPE](https://github.com/yxlllc/RMVPE) (a fork of Dream-High's
-    repo) at release [`230917`](https://github.com/yxlllc/RMVPE/releases/tag/230917).
-    That fork carries **no LICENSE file** (`gh api repos/yxlllc/RMVPE --jq
-    .license` → `null`; confirmed by listing the repo root, no `LICENSE`
-    present), no license statement in its README, and no terms in the
-    `230917` release notes.
-  - Net effect: this package's own [model.py](src/rmvpe_infer/model.py)/
-    [deepunet.py](src/rmvpe_infer/deepunet.py) architecture is vendored from
-    yxlllc's fork (see that file's header), and the checkpoint trained
-    against that architecture has no explicit license from yxlllc. Absent an
-    explicit grant, default copyright applies — treat the checkpoint as
-    all-rights-reserved for redistribution/commercial-use purposes until an
-    upstream author (Dream-High or yxlllc) states otherwise. This is
-    disclosed, not silently bundled around; see `config/checkpoints.toml`'s
-    `license = "NOASSERTION"` field and its inline verification notes.
-
----
-
-## Testing
-
-```bash
-# CI-safe unit tests — no checkpoint, no network, no GPU
-uv run pytest tests/
-
-# Weight-dependent tests — needs the real checkpoint (auto-downloads if
-# not cached, or set RMVPE_INFER_WEIGHTS to point at your own copy):
-# pitch-accuracy physics test (220/440/880Hz + vibrato sweep vs ground
-# truth), a CPU-determinism check, and a golden regression fixture.
-uv run pytest tests/ -m weights
-```
-
-Push/PR CI runs this offline suite on Python 3.10, 3.11, and 3.12 and verifies
-the interpreter selected for each job. Python 3.10 uses the automatically installed
-`tomli` backport for checkpoint configuration; newer Python uses stdlib `tomllib`.
-Weight-dependent checks remain opt-in.
-
-See [CLAUDE.md](CLAUDE.md) for the full test-layer breakdown.
-
----
-
-## What this project will NEVER bundle
-
-RMVPE-Infer downloads a pretrained checkpoint at runtime — it does **not**,
-and will never, ship model weights inside the pip package or the git
-repository itself:
-
-- The `.pt` checkpoint (~340 MB) is fetched on first use from the upstream
-  release URL (or your own copy via `RMVPE_INFER_WEIGHTS`) into
-  `~/.cache/rmvpe/`, never committed to this repo or bundled into the wheel.
-- Every download (and every cache hit) is sha256-verified against a pinned
-  hash before it's allowed to load — a truncated, corrupted, or
-  silently-swapped file raises `ChecksumMismatchError` instead of loading.
-- The current download URL is a third-party GitHub release (yxlllc's, not
-  an openmirlab-controlled mirror). This is a known gap — the project's
-  intent is to eventually host weights under org control — tracked, not
-  bundled around.
-
----
+This repository currently declares MIT in its [LICENSE](LICENSE) and package
+metadata. That declaration does **not** grant rights to the separately
+downloaded checkpoint. We found no explicit checkpoint license in the
+[upstream fork](https://github.com/yxlllc/RMVPE) or its
+[release notes](https://github.com/yxlllc/RMVPE/releases/tag/230917); the
+checkpoint catalog therefore records `NOASSERTION`. Also, the provenance and
+license attribution of the adapted architecture code require review: the
+[original repository declares Apache-2.0](https://github.com/Dream-High/RMVPE/blob/main/LICENSE),
+while the fork has no apparent license file. Do not assume this repository's
+MIT label resolves those upstream rights. Obtain clarification from the
+upstream authors before relying on redistribution or commercial-use rights
+for the checkpoint or adapted code.
 
 ## Development
 
-Uses [`uv`](https://github.com/astral-sh/uv) for dependency management.
+The default checkpoint URL, checksum, and license observation live in
+[`src/rmvpe_infer/config/checkpoints.toml`](src/rmvpe_infer/config/checkpoints.toml).
 
 ```bash
-# Install dependencies
-uv sync --extra dev
-
-# Run the CI-safe test suite
-uv run pytest tests/
-
-# Lint
+uv run pytest tests/       # offline tests; no checkpoint required
+uv run pytest tests/ -m weights  # opt-in tests using a real checkpoint
 uv run ruff check .
 ```
 
-Package version is single-sourced in `src/rmvpe_infer/__about__.py` — don't
-hand-edit a version literal in `pyproject.toml` or `__init__.py` directly.
-See [CLAUDE.md](CLAUDE.md) for the full test-layer breakdown and dev workflow notes.
-
----
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details. **This covers this
-repository's source code, not the downloaded checkpoint.** The RMVPE
-checkpoint is a separate artifact under **no verified license**
-(`NOASSERTION`) — see [Pretrained Model](#pretrained-model) above for the
-verified findings and sources.
-
-This project includes code adapted from **RMVPE** by yxlllc (see
-Acknowledgments above).
-
----
-
-## Support
-
-For issues and questions:
-- **GitHub Issues**: [github.com/openmirlab/rmvpe-infer/issues](https://github.com/openmirlab/rmvpe-infer/issues)
-
----
+The weights tests may download the checkpoint when no local copy is set.
+For package maintenance details, see [CLAUDE.md](CLAUDE.md). Report issues
+through [GitHub Issues](https://github.com/openmirlab/rmvpe-infer/issues).

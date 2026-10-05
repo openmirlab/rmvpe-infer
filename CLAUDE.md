@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**Distribution:** `rmvpe-infer` is not on PyPI; use the source installation in README.md.
+
 Guidance for Claude Code (or any agent) working in this repository. Follows
 the [openmirlab org constitution](https://github.com/openmirlab/openmirlab-skills/blob/main/plugins/openmirlab/CLAUDE.md).
 
