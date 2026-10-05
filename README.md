@@ -1,5 +1,8 @@
 # rmvpe-infer
 
+> **Current installation:** `pip install "rmvpe-infer @ git+https://github.com/openmirlab/rmvpe-infer.git"`
+> OpenMIRLab no longer publishes new versions to PyPI. Any existing PyPI releases are historical snapshots.
+
 Estimate vocal pitch (F0) from an audio file or a mono audio array using
 [RMVPE](https://github.com/yxlllc/RMVPE). This package provides inference,
 checkpoint download, and a command-line tool; it does not train a model or
