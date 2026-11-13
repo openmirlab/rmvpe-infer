@@ -1,13 +1,13 @@
 # rmvpe-infer
 
-> **Current installation:** `pip install "rmvpe-infer @ git+https://github.com/openmirlab/rmvpe-infer.git"`
-> OpenMIRLab no longer publishes new versions to PyPI. Any existing PyPI releases are historical snapshots.
 
 Estimate vocal pitch (F0) from an audio file or a mono audio array using
 [RMVPE](https://github.com/yxlllc/RMVPE). This package provides inference,
 checkpoint download, and a command-line tool; it does not train a model or
 separate vocals. The repository is public, but **`rmvpe-infer` is not currently
 published on PyPI**.
+
+[![Python: 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml) [![Distribution: GitHub source](https://img.shields.io/badge/distribution-GitHub%20source-blue.svg)](#install)
 
 ## Why this exists
 
@@ -42,6 +42,12 @@ Please cite the original paper when using this model:
 }
 ```
 
+## Features
+
+- Vocal F0 estimation from a file or mono waveform, including voiced/unvoiced output.
+- Reusable session, command-line CSV export, CPU/CUDA selection and optional Viterbi decoding.
+- Automatic checksum-verified default checkpoint download or explicit local path for offline use.
+
 ## Scope
 
 The public API is `RMVPE`, `RMVPESession`, and `download_model`.
@@ -50,7 +56,9 @@ are outside this inference-only package.
 
 ## Install
 
-Python 3.10 or newer is required. Install the current source with:
+Python 3.10 or newer is required. OpenMIRLab publishes new versions from
+GitHub; any existing PyPI release is a historical snapshot. Install the current
+source with:
 
 ```bash
 python -m pip install "git+https://github.com/openmirlab/rmvpe-infer.git"
@@ -70,7 +78,7 @@ cd rmvpe-infer
 uv sync --extra dev
 ```
 
-## Run pitch estimation
+## Quick Start
 
 The first inference downloads the upstream checkpoint unless it is already
 cached or you supply one. The command writes CSV columns `timestamp_s` and
@@ -124,7 +132,21 @@ These explicit local paths **bypass the built-in checksum check**; verify
 their provenance yourself. The package and its Git history do not include
 the checkpoint.
 
-## License and upstream rights
+## Development
+
+The default checkpoint URL, checksum, and license observation live in
+[`src/rmvpe_infer/config/checkpoints.toml`](src/rmvpe_infer/config/checkpoints.toml).
+
+```bash
+uv run pytest tests/       # offline tests; no checkpoint required
+uv run pytest tests/ -m weights  # opt-in tests using a real checkpoint
+uv run ruff check .
+```
+
+The weights tests may download the checkpoint when no local copy is set.
+For package maintenance details, see [CLAUDE.md](CLAUDE.md).
+
+## License
 
 This repository currently declares MIT in its [LICENSE](LICENSE) and package
 metadata. That declaration does **not** grant rights to the separately
@@ -139,17 +161,8 @@ MIT label resolves those upstream rights. Obtain clarification from the
 upstream authors before relying on redistribution or commercial-use rights
 for the checkpoint or adapted code.
 
-## Development
 
-The default checkpoint URL, checksum, and license observation live in
-[`src/rmvpe_infer/config/checkpoints.toml`](src/rmvpe_infer/config/checkpoints.toml).
+## Support
 
-```bash
-uv run pytest tests/       # offline tests; no checkpoint required
-uv run pytest tests/ -m weights  # opt-in tests using a real checkpoint
-uv run ruff check .
-```
-
-The weights tests may download the checkpoint when no local copy is set.
-For package maintenance details, see [CLAUDE.md](CLAUDE.md). Report issues
-through [GitHub Issues](https://github.com/openmirlab/rmvpe-infer/issues).
+Report package bugs through [openmirlab/rmvpe-infer issues](https://github.com/openmirlab/rmvpe-infer/issues).
+Research and model questions belong with the original RMVPE authors.
